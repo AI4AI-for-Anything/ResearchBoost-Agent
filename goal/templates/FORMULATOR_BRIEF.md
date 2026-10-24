@@ -15,7 +15,7 @@ You are responsible for **formulating a training-optimization task, launching a 
 ## 1. Environment
 
 - Variables: `WORK` (one directory per task: `$WORK/<task>/{ws,home,logs}`), `ASSETS` (this task's environment, weights and data, read-only in the sandbox), `LOCAL` (task-private local disk; `$LOCAL/tmp` is the sandbox's `/tmp`). Environment, weights and data go into `$ASSETS`; write the downloads and the environment build as scripts in the task's `prep/`, so they can be rerun after the machine is rebuilt.
-- Sandbox: [`../sandbox/sandbox.sh`](../sandbox/sandbox.sh) `<task> "<gpus>" [command ...]`; without a command it starts the Codex TUI. Inside the sandbox:
+- Sandbox: [`../sandbox/sandbox.sh`](../sandbox/sandbox.sh) `<task> "<gpus>" [command ...]`; without a command it starts the Codex TUI (for a look by hand; runs go through `clawo`). Inside the sandbox:
   - only the assigned GPUs are visible (renumbered 0..N-1);
   - the home directory is hidden except `$WORK/<task>` (writable); `$ASSETS` is read-only;
   - by default (without `PREP=1`) `ws/bench`, `ws/numerics`, `ws/task` and `ws/targets` are read-only; use `PREP=1` during formulation;
@@ -78,21 +78,21 @@ Use [`../../tasks/dmd2/GOAL.md`](../../tasks/dmd2/GOAL.md) as the template for `
 - Constraints: training semantics must not change (data and order, batch, learning rate and optimizer, loss, optimizer steps per step); the code must not behave differently depending on whether it is being timed or judged; read-only paths, no new packages; the precision floor.
 - The environment, the list of skills ("priors summarized from other training-optimization tasks; re-verify them on this task before treating them as conclusions"), and the wrap-up requirements (commit each change separately on branch `opt` of the candidate repository; a summary at the end of the WORK_LOG: final switch file, final check path and result, breakdown of the gains, directions that did not work and why).
 
-Launch: write the `/goal` line into `ws/GOAL_LINE.txt` (see [`../../tasks/dmd2/GOAL_LINE.txt`](../../tasks/dmd2/GOAL_LINE.txt)), then run [`../supervise/launch_goal.sh`](../supervise/launch_goal.sh) `<task> "<gpus>"`. Afterwards confirm that Codex starts reading `GOAL.md` and working (the TUI log grows, profile commands appear).
+Launch: write the `/goal` line into `ws/GOAL_LINE.txt` (see [`../../tasks/dmd2/GOAL_LINE.txt`](../../tasks/dmd2/GOAL_LINE.txt)), make sure `clawo serve` is running on the host, then run `MIN_SPEEDUP=<minimum> ` [`../clawo/run.sh`](../clawo/run.sh) `<task> "<gpus>"`. The final full check is part of the run: when Codex stops, `clawo` judges the candidate the agent names in `ws/FINAL.json`. Afterwards confirm with [`../clawo/status.sh`](../clawo/status.sh) that the goal is active and that Codex starts reading `GOAL.md` and working (profile commands appear under `ws/runs/`).
 
 ## 5. Supervision
 
 - Run [`../supervise/watch.sh`](../supervise/watch.sh) `<task> "<gpus>"` in the background and take a look at every `EVENT` line. Check:
-  - the tmux session is alive, the TUI log is growing, and Codex is not stuck waiting for input or retrying an error;
+  - the run is `running` and the goal `active` in `status.sh`, its token count and time are growing, and the resume count is not climbing (a climbing count means the endpoint keeps refusing);
   - `WORK_LOG.md` has an entry per round, and the pace, profile-first and bench.py-only rules are followed;
   - GPUs are used only on your cards, with no leftover processes, and there is enough disk;
   - no attempts to change read-only paths, bypass the bench, or behave differently depending on whether it is being timed.
-- When the model endpoint keeps reporting "at capacity", [`../supervise/babysit.sh`](../supervise/babysit.sh) sends `/goal resume` when idle. After the TUI dies or the machine restarts, use [`../supervise/relaunch_resume.sh`](../supervise/relaunch_resume.sh) to reattach the original session.
-- Intervene only with **rule-level** reminders sent through `tmux send-keys` ("this round is over 30 minutes, please wrap up and log it", "please profile before changing anything", "do not write your own timing script"). **Never give concrete optimization advice, and never reveal other tasks' methods or numbers.** You fix broken infrastructure (sandbox, disk, drivers, model endpoint) and tell Codex once it is fixed.
+- A usage limit or "at capacity" from the model endpoint, or a goal that sits idle, is resumed by `clawo` on its own within a bound; `watch.sh` reports each resume. After the machine restarts, start `clawo serve` again and run [`../clawo/resume.sh`](../clawo/resume.sh) `<task>`: the goal continues on the same thread.
+- Intervene only with **rule-level** reminders sent through [`../clawo/steer.sh`](../clawo/steer.sh) `<task> "<text>"` ("this round is over 30 minutes, please wrap up and log it", "please profile before changing anything", "do not write your own timing script"). **Never give concrete optimization advice, and never reveal other tasks' methods or numbers.** You fix broken infrastructure (sandbox, disk, drivers, model endpoint) and tell Codex once it is fixed.
 - Maintain the state in `$WORK/<task>/SUPERVISOR.md`: current best speedup, number of rounds, problems and your interventions, written so that someone else can take over directly.
-- When Codex claims to be done: check `check.json` independently (run a full check yourself if needed), confirm there were no violations, then end supervision.
+- When Codex stops, `clawo` runs the full check on the candidate in `ws/FINAL.json`; read `ws/runs/clawo-final/latest/check.json`, confirm there were no violations, then end supervision.
 - Supervise until the goal is reached, Codex stops by itself after several rounds without progress, or the time budget runs out. If it is still making progress at the deadline, report the state and let the owner decide whether to stop.
 
 ## 6. Report
 
-When done (or blocked on something the owner must decide), report briefly: workspace path, upstream commit, workload (how the GPU count was matched to upstream), baseline numbers and top hotspots, acceptance results, the `GOAL.md` target, Codex launch time and tmux session name, key events during supervision, and the final result. When blocked, say exactly where and what the owner needs to decide.
+When done (or blocked on something the owner must decide), report briefly: workspace path, upstream commit, workload (how the GPU count was matched to upstream), baseline numbers and top hotspots, acceptance results, the `GOAL.md` target, Codex launch time and the `clawo` run id, key events during supervision, and the final result. When blocked, say exactly where and what the owner needs to decide.

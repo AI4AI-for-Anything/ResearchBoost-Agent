@@ -4,7 +4,7 @@ This repository describes how an optimization task is prepared, run and judged; 
 
 1. [docs/methodology.md](docs/methodology.md): the process from scoping to final validation.
 2. [docs/judge.md](docs/judge.md): what counts as success, and when the judge may or may not change.
-3. [docs/goal-mode.md](docs/goal-mode.md): how a run works (one Codex `/goal` session in a sandbox, watched by a supervisor).
+3. [docs/goal-mode.md](docs/goal-mode.md): how a run works (one Codex `/goal` session in a sandbox, run by claw-orchestrator, watched by a supervisor).
 4. The skill cards in [skills/](skills) that match the task.
 5. One worked example: [tasks/dmd2/GOAL.md](tasks/dmd2/GOAL.md).
 

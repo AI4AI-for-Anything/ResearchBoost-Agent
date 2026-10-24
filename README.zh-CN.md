@@ -25,6 +25,13 @@ ResearchBoost-Agent 从研究者日常使用的训练代码入手，用 AI 加�
 
 ## 快速开始
 
+在 GPU 主机上用 [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator) 驱动运行：
+
+```bash
+npm install -g @enderfga/claw-orchestrator   # 7.13.0 或更高版本
+clawo serve                                   # 保持运行
+```
+
 配置 agent 使用的模型 API：
 
 ```bash
@@ -39,7 +46,7 @@ cp goal/codex.env.example goal/codex.env
 ![运行流程：定义任务并固定评测规则，随后由 agent 在沙箱内反复分析性能、修改代码、计时、完整评测并记录结果](docs/figures/goal-mode-loop.svg)
 
 1. **定义任务。** 任务负责人先明确必须保持不变的设置：上游训练工作负载、每张 GPU 的负载、基线数值精度和训练计算逻辑。负责准备任务的 agent 搭建评测程序（`bench/` 和一份固定版本的 [`numerics/`](numerics)），记录基线结果，并固定容差 δ。随后用已知有问题的候选版本验证各项检查能否正确拒绝错误，最后编写 `GOAL.md`。
-2. **运行优化。** 在 bubblewrap 沙箱内，为一个 Codex `/goal` 会话提供工作区、GPU 和技能文档。每轮先分析当前最佳版本的性能，再优化一个瓶颈，并通过配置开关控制是否启用。用 `bench.py time` 计时后，将本轮结果写入 `WORK_LOG.md`。监督 agent 在沙箱外监控运行，仅针对规则执行和事实核对进行干预，不指导优化方向。详见 [docs/goal-mode.md](docs/goal-mode.md)。
+2. **运行优化。** 在 bubblewrap 沙箱内，为一个 Codex `/goal` 会话提供工作区、GPU 和技能文档。每轮先分析当前最佳版本的性能，再优化一个瓶颈，并通过配置开关控制是否启用。用 `bench.py time` 计时后，将本轮结果写入 `WORK_LOG.md`。会话由 [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator) 运行：主机重启或模型接口达到用量上限后，它会接回同一个 Codex 线程继续；Codex 停下后，由它亲自运行完整评测。监督 agent 在沙箱外监控运行，仅针对规则执行和事实核对进行干预，不指导优化方向。详见 [docs/goal-mode.md](docs/goal-mode.md)。
 3. **验证结果。** 以 `bench.py check` 的结果作为唯一通过标准。完整评测通过后，再通过实际的端到端训练或评测验证结果。
 
 ## 已有结果
@@ -73,7 +80,7 @@ cp goal/codex.env.example goal/codex.env
 | 路径 | 内容 |
 |---|---|
 | [`docs/`](docs) | 英文文档：[方法](docs/methodology.md)、[评测](docs/judge.md)、[goal 模式](docs/goal-mode.md)、[任务运行指南](docs/run-a-task.md)、[四个任务的经验](docs/lessons.md) |
-| [`goal/`](goal) | Codex `/goal` 会话的运行工具：bubblewrap 沙箱、Codex 配置模板和模型 API 配置文件、启动 / 恢复运行 / 状态监控脚本，以及任务准备和监督 agent 的说明 |
+| [`goal/`](goal) | 在 claw-orchestrator 上运行 Codex `/goal` 会话的工具：bubblewrap 沙箱、Codex 配置模板和模型 API 配置文件、启动 / 查看状态 / 发送提醒 / 恢复运行的脚本和最终评测、监控脚本，以及任务准备和监督 agent 的说明 |
 | [`numerics/`](numerics) | 各任务评测复制并固定版本的数值等价性检查组件：数据记录、逐位和分级比对、配对随机种子的训练轨迹比对、任务适配器基类及自测 |
 | [`skills/`](skills) | 选择优化方向前阅读的 8 份技能文档：`train-opt-*`（性能分析、计时、分阶段优化步骤、数值验证、算子融合方法、FSDP 多次前向计算）和 `sglang-diffusion-*`（扩散模型的性能测试与优化方法） |
 | [`tasks/`](tasks) | 各任务的材料：agent 使用的 `GOAL.md`、固定版本的评测代码、评测结果存档、监督记录和准备脚本 |

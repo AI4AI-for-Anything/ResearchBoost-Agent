@@ -25,6 +25,13 @@ Have a project you want accelerated? Submit it to our Wishlist.</p>
 
 ## Quick start
 
+Runs are driven by [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator) on the GPU host:
+
+```bash
+npm install -g @enderfga/claw-orchestrator   # 7.13.0 or later
+clawo serve                                   # keep it running
+```
+
 Give the agent access to a model endpoint:
 
 ```bash
@@ -39,7 +46,7 @@ Then point your agent at [docs/run-a-task.md](docs/run-a-task.md).
 ![Goal mode: formulate and freeze the judge, then one agent iterates in a sandbox: profile, edit, time, full check, log](docs/figures/goal-mode-loop.svg)
 
 1. **Frame the task.** The owner fixes what may not change: the upstream workload and per-GPU load, the baseline precision, the training semantics. A formulating agent builds the judge for this task (`bench/` plus a frozen copy of [`numerics/`](numerics)), records the baseline, freezes δ, proves with known-bad candidates that every gate fires, and writes `GOAL.md`.
-2. **Run goal mode.** One Codex `/goal` session gets the workspace, the GPUs and the skill cards inside a bubblewrap sandbox. Every round it profiles the current best version, changes one hotspot behind a switch, measures with `bench.py time`, and logs the round in `WORK_LOG.md`. A supervisor watches from outside and intervenes only on rules and facts, never on optimization direction. See [docs/goal-mode.md](docs/goal-mode.md).
+2. **Run goal mode.** One Codex `/goal` session gets the workspace, the GPUs and the skill cards inside a bubblewrap sandbox. Every round it profiles the current best version, changes one hotspot behind a switch, measures with `bench.py time`, and logs the round in `WORK_LOG.md`. [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator) runs the session: it keeps the Codex thread across restarts and usage limits, and when Codex stops it runs the full check itself. A supervisor watches from outside and intervenes only on rules and facts, never on optimization direction. See [docs/goal-mode.md](docs/goal-mode.md).
 3. **Accept only what the judge accepts.** `bench.py check` is the only verdict. A full-check PASS is then confirmed with a real end-to-end training or evaluation run.
 
 ## Results
@@ -73,7 +80,7 @@ Read [AGENTS.md](AGENTS.md) and [docs/methodology.md](docs/methodology.md), give
 | Path | Contents |
 |---|---|
 | [`docs/`](docs) | [Methodology](docs/methodology.md), [the judge](docs/judge.md), [goal mode](docs/goal-mode.md), [running a task](docs/run-a-task.md), [lessons from four tasks](docs/lessons.md) |
-| [`goal/`](goal) | Running one Codex `/goal` session: bubblewrap sandbox, Codex config template and model-access file, launch / resume / watchdog scripts, the brief for the formulating and supervising agent |
+| [`goal/`](goal) | Running one Codex `/goal` session on claw-orchestrator: bubblewrap sandbox, Codex config template and model-access file, run / status / steer / resume scripts and the final check, the watchdog, the brief for the formulating and supervising agent |
 | [`numerics/`](numerics) | The equivalence component every task judge copies and freezes: recording, bitwise and tiered comparison, paired-seed trajectories, the task adapter base class, a self-test |
 | [`skills/`](skills) | Eight skill cards read before choosing what to try: `train-opt-*` (profiling, measurement, action ladder, numerics validation, fusion patterns, FSDP multi-forward) and `sglang-diffusion-*` (diffusion benchmarking and performance) |
 | [`tasks/`](tasks) | Per task: the `GOAL.md` the agent saw, the frozen judge code, archived judge records, supervision notes and the prep scripts |

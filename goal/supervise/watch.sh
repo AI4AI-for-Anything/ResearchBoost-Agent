@@ -1,21 +1,37 @@
 #!/bin/bash
 # Supervisor watchdog, run on the GPU host outside the sandbox. Exits with a one-line reason when something needs the
-# supervisor's attention; otherwise exits after MAX seconds. The supervising Claude subagent runs it in the
-# background and reacts to each EVENT line.
+# supervisor's attention; otherwise exits after MAX seconds. The supervising agent runs it in the background and
+# reacts to each EVENT line.
 # usage: watch.sh <task> "<gpu indices>" [MAX seconds]
 TASK=$1; GPUS=$2; MAX=${3:-6600}
-W=${WORK:?set WORK}/$TASK; S=${TASK}_goal
+W=${WORK:?set WORK}/$TASK
+ID=$(cat "$W/clawo/run_id" 2>/dev/null) || { echo "EVENT no-run-recorded $(date +%T)"; exit 0; }
+CLAWO=${CLAWO:-clawo}
 start=$(date +%s)
-rounds() { grep -c "^## " $W/ws/WORK_LOG.md 2>/dev/null || echo 0; }
-r0=$(rounds); idle=0
+rounds() { grep -c "^## " "$W/ws/WORK_LOG.md" 2>/dev/null || echo 0; }
+# workflow state, goal status and resume attempts, from the run's checkpoint
+state() {
+  "$CLAWO" workflow show "$ID" --json 2>/dev/null | python3 -c '
+import json, sys
+try:
+    r = json.load(sys.stdin)
+except Exception:
+    print("unreachable - -"); sys.exit()
+g = (r.get("nodes", {}).get("goal") or {}).get("data") or {}
+print(r.get("state"), g.get("status", "-"), g.get("resumes", 0))'
+}
+r0=$(rounds); read -r _ _ resumes0 < <(state); idle=0
 while :; do
   now=$(date +%s); el=$((now-start))
-  if ! tmux has-session -t $S 2>/dev/null; then echo "EVENT tmux-session-gone $(date +%T)"; exit 0; fi
+  read -r run goal resumes < <(state)
+  if [ "$run" = unreachable ]; then echo "EVENT clawo-unreachable $(date +%T)"; exit 0; fi
+  if [ "$run" != running ] && [ "$run" != verifying ]; then echo "EVENT run-$run goal=$goal $(date +%T)"; exit 0; fi
+  if [ "$resumes" != "$resumes0" ]; then echo "EVENT goal-resumed $resumes (was $resumes0) goal=$goal $(date +%T)"; exit 0; fi
   r=$(rounds)
   if [ "$r" != "$r0" ]; then echo "EVENT new-work-log-round $r (was $r0) $(date +%T)"; exit 0; fi
   busy=0
   for g in $GPUS; do
-    used=$(nvidia-smi -i $g --query-gpu=memory.used --format=csv,noheader,nounits)
+    used=$(nvidia-smi -i "$g" --query-gpu=memory.used --format=csv,noheader,nounits)
     [ "${used:-0}" -gt 2000 ] && busy=$((busy+1))
   done
   if [ "$busy" = 0 ]; then idle=$((idle+1)); else idle=0; fi

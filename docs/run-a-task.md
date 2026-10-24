@@ -12,7 +12,7 @@ Step-by-step instructions for the agent (or person) that prepares a task, starts
 | `SANDBOX` | Path of `goal/sandbox/sandbox.sh`, needed by the prep scripts that start sandboxed stages. |
 | `HF_ENDPOINT` | Optional Hugging Face mirror for the download scripts (default `https://huggingface.co`). |
 
-The sandbox needs `bwrap` (bubblewrap), `tmux` and the `codex` CLI on the host; `TOOLS` can point at a directory holding node and codex if they are not on the system PATH.
+The sandbox needs `bwrap` (bubblewrap) and the `codex` CLI on the host; `TOOLS` can point at a directory holding node and codex if they are not on the system PATH. The run is driven by [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator) 7.13.0 or later on the same host: `npm install -g @enderfga/claw-orchestrator`, then keep `clawo serve` running (in its own tmux window, or as a service). `run.sh` passes `ASSETS`, `LOCAL`, `CODEX_ENV`, `TOOLS`, `SANDBOX_NET` and `BWRAP` on to the sandbox when they are set, because `clawo serve` does not share your shell's environment.
 
 ## 2. Set up the task workspace
 
@@ -51,10 +51,13 @@ Baseline records, baseline trajectories and frozen input digests are machine-spe
 
 Run inside the sandbox, from the workspace (`ws/` is the working directory there). RAE's bench is `bench/run.py` instead of `bench/bench.py`.
 
+Check a copy of the reference (the `reference` path in `bench/bench.json`), never the reference itself. A check links the task's assets into the tree it checks (for Self-Forcing, `wan_models/`, `checkpoints/` and a prompt file), and every later copy of the reference (the full check's own reference run, the acceptance trees) would turn those links into plain files, which the bench then refuses.
+
 ```bash
 S=goal/sandbox/sandbox.sh
-PREP=1 $S <task> "0 1 2 3" python bench/bench.py check --tree targets/reference --out runs/verify/quick --quick
-PREP=1 $S <task> "0 1 2 3" python bench/bench.py check --tree targets/reference --out runs/verify/full
+cp -r $T/ws/targets/reference $T/ws/targets/verify
+PREP=1 $S <task> "0 1 2 3" python bench/bench.py check --tree targets/verify --out runs/verify/quick --quick
+PREP=1 $S <task> "0 1 2 3" python bench/bench.py check --tree targets/verify --out runs/verify/full
 ```
 
 Expected in `runs/verify/*/check.json`:
@@ -65,30 +68,24 @@ Then run the task's acceptance script (`accept.sh` for DMD2, `acceptance.sh` and
 
 ## 4. Launch
 
-Move the formulation material where the sandbox cannot see it, then start the session:
+Move the formulation material where the sandbox cannot see it, then start the run with the minimum speedup from `GOAL.md`:
 
 ```bash
 mv $WORK/<task>/prep $WORK/<task>_formulation
-goal/supervise/launch_goal.sh <task> "0 1 2 3"
+MIN_SPEEDUP=2.0 goal/clawo/run.sh <task> "0 1 2 3"
 ```
 
-This opens tmux session `<task>_goal`, starts the Codex TUI in the sandbox, records the screen to `$WORK/<task>/logs/tui_<time>.log` and types the line from `ws/GOAL_LINE.txt`. Check that the agent reads `GOAL.md` and starts with a profile.
+`run.sh` writes the objective and the final check under `$WORK/<task>/clawo/`, starts Codex in the sandbox on a `/goal` built from `ws/GOAL_LINE.txt`, and records the run id. Check with `goal/clawo/status.sh <task>` that the goal is `active` and, after a few minutes, that the agent read `GOAL.md` and started with a profile (`ws/runs/`, `ws/WORK_LOG.md`).
 
 Supervise from the host:
 
 ```bash
-goal/supervise/watch.sh <task> "0 1 2 3" &     # exits with one EVENT line when something needs a look
-goal/supervise/babysit.sh <task> "0 1 2 3" &   # sends /goal resume when the session idles on "model at capacity"
-tmux attach -t <task>_goal                      # look at the TUI
+goal/supervise/watch.sh <task> "0 1 2 3" &          # exits with one EVENT line when something needs a look
+goal/clawo/status.sh <task>                          # goal status, tokens, time, resume attempts, rounds, last check
+goal/clawo/steer.sh <task> "Log this round in WORK_LOG.md before starting the next one."
 ```
 
-After a host restart or a hung TUI, resume the same thread (the goal is bound to it):
-
-```bash
-ls -t $WORK/<task>/home/.codex/sessions/*/*/*/rollout-*.jsonl | head -1   # the thread id is the UUID at the end
-goal/supervise/relaunch_resume.sh <task> "0 1 2 3" <thread id>
-# then type /goal resume in the TUI
-```
+A usage limit or a stalled goal is resumed by `clawo` on its own (see [goal-mode.md](goal-mode.md#run-resume-supervise-goalclawo)). After a host restart, start `clawo serve` again and run `goal/clawo/resume.sh <task>`: the goal continues on the same Codex thread. When Codex stops, `clawo` runs the full check on the candidate the agent named in `ws/FINAL.json`; `status.sh` then shows the run as `completed` (accepted) or `failed`, and the verdict is in `ws/runs/clawo-final/latest/check.json`.
 
 Supervision rules are in [goal-mode.md](goal-mode.md#supervision-rules): intervene on rules and facts only, never on optimization direction.
 
@@ -99,7 +96,9 @@ Supervision rules are in [goal-mode.md](goal-mode.md#supervision-rules): interve
 | `$WORK/<task>/ws/WORK_LOG.md` | One entry per round: profile findings, the change, `time` result, `check` result |
 | `$WORK/<task>/ws/runs/<round>/.../check.json` | The verdict: `status`, `correctness`, `performance.speedup`, fingerprints, `cost.gpu_hours` |
 | `$WORK/<task>/ws/<code>/` branch `opt` | The candidate, one commit per change; the final switch file is named in the WORK_LOG summary |
-| `$WORK/<task>/logs/` | TUI recordings and watchdog output |
-| `$WORK/<task>/home/.codex/sessions/` | Codex rollouts; their mtime is the reliable liveness signal |
+| `$WORK/<task>/clawo/` | The run: objective, final-check contract, judge digests at launch, run id |
+| `$WORK/<task>/ws/runs/clawo-final/` | The harness's final full check; `latest/check.json` is the verdict |
+| `$WORK/<task>/logs/` | Watchdog output |
+| `$WORK/<task>/home/.codex/sessions/` | Codex rollouts of the run's thread |
 
 A result counts only if a full `check` (not `--quick`) says PASS. Before publishing it, run the real workload end to end (see [methodology.md](methodology.md#3-wrap-up-and-real-validation)).
