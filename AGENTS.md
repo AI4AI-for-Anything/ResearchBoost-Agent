@@ -4,7 +4,7 @@ This repository describes how an optimization task is prepared, run and judged; 
 
 1. [docs/methodology.md](docs/methodology.md): the process from scoping to final validation.
 2. [docs/judge.md](docs/judge.md): what counts as success, and when the judge may or may not change.
-3. [docs/goal-mode.md](docs/goal-mode.md): how a run works (one Codex `/goal` session in a sandbox, run by claw-orchestrator, watched by a supervisor).
+3. [docs/goal-mode.md](docs/goal-mode.md): how a run works (one Codex or Claude Code `/goal` session in a sandbox, run by claw-orchestrator, watched by a supervisor).
 4. The skill cards in [skills/](skills) that match the task.
 5. One worked example: [tasks/dmd2/GOAL.md](tasks/dmd2/GOAL.md).
 
@@ -16,9 +16,11 @@ This repository describes how an optimization task is prepared, run and judged; 
 - **Data.** Use public code, weights and data. Private data stays on the infrastructure it belongs to: do not copy, stream, presign or list it out.
 - **Shared machines.** Use only the GPUs and directories assigned to you. Never touch other users' processes or files. Use absolute paths in any `rm -rf`.
 - **No answer leakage.** When you formulate a task for another agent, do not include known results, switch names or speedups from other tasks.
-- **Secrets.** Model credentials live only in `goal/codex.env` (git-ignored); never write them into a task workspace, a log or a commit.
+- **Secrets.** Model credentials live only in `goal/codex.env` / `goal/claude.env` (git-ignored) and the task's home (`$WORK/<task>/home`); never write them into a task workspace, a log or a commit.
 
 ## Starting a new task
+
+To speed up the owner's own code, follow section 0.5 of [goal/templates/FORMULATOR_BRIEF.md](goal/templates/FORMULATOR_BRIEF.md); `goal/init_task.sh <task> <repo> [commit]` lays out the workspace below.
 
 ```
 tasks/<new>/

@@ -1,0 +1,120 @@
+name: Contribute a case
+description: Submit a training speedup you got with ResearchBoost-Agent, for review and listing in Results.
+title: "[Case] "
+labels: ["case-submission", "needs-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing your result. Run the [Quick start](https://github.com/AI4AI-for-Anything/ResearchBoost-Agent#quick-start) on your own training code first; a solid speedup or a non-trivial optimization trajectory both qualify.
+        We review every submission. Once it is labelled `accepted`, open a pull request that adds it to [Results](https://github.com/AI4AI-for-Anything/ResearchBoost-Agent#results). See [CONTRIBUTING.md](https://github.com/AI4AI-for-Anything/ResearchBoost-Agent/blob/main/CONTRIBUTING.md).
+
+  - type: input
+    id: upstream
+    attributes:
+      label: Upstream repository
+      description: The original training code and the commit you started from.
+      placeholder: https://github.com/org/project @ 1a2b3c4
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Domain
+      options:
+        - LLM
+        - MLLM
+        - Image Generation
+        - Video Generation
+        - Embodied AI
+        - Other (name it below)
+    validations:
+      required: true
+
+  - type: input
+    id: other-domain
+    attributes:
+      label: Other domain
+      description: Only if you chose Other above.
+      placeholder: Speech recognition
+
+  - type: input
+    id: workload
+    attributes:
+      label: Workload
+      description: One line, as it would appear in the Results table.
+      placeholder: LLaVA-1.5-7B stage-2 fine-tuning
+    validations:
+      required: true
+
+  - type: input
+    id: optimized
+    attributes:
+      label: Optimized repository
+      description: A public repository with the optimized code. Results will link to it.
+      placeholder: https://github.com/you/Faster-Project
+    validations:
+      required: true
+
+  - type: textarea
+    id: speedup
+    attributes:
+      label: Speedup
+      description: Baseline → optimized, with units and what was measured (step time, iteration time, end-to-end wall-clock). Mark any extrapolated number as estimated.
+      placeholder: 1,541.4 → 445.7 ms/iteration (3.46×), steady-state iteration time
+    validations:
+      required: true
+
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware
+      description: GPU model and count, plus anything else that affects timing (interconnect, CPU, storage).
+      placeholder: 8 × <GPU model> 80 GB, NVLink
+    validations:
+      required: true
+
+  - type: textarea
+    id: e2e
+    attributes:
+      label: End-to-end validation
+      description: Optional. Results of a full training or evaluation run with the optimized code.
+
+  - type: input
+    id: agent
+    attributes:
+      label: Agent and model
+      placeholder: Claude Code + <model>, or Codex + <model>
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: Commands to run the baseline, the optimized version and the judge.
+      render: shell
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Checklist
+      options:
+        - label: I ran the optimization with ResearchBoost-Agent (the Quick start or a task in this repository).
+          required: true
+        - label: The judge was frozen before optimization started, and its hash did not change.
+          required: true
+        - label: The optimized repository is public and reproduces the numbers above.
+          required: true
+        - label: I agree to have this result listed in the README, linking to my repository.
+          required: true
+
+  - type: checkboxes
+    id: bench
+    attributes:
+      label: ResearchBoost-Bench
+      options:
+        - label: Consider this case for ResearchBoost-Bench.

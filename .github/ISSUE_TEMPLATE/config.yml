@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Discord
+    url: https://discord.gg/5k7Rr9hut
+    about: Questions about running ResearchBoost-Agent or preparing a case.
+  - name: WeChat group
+    url: https://github.com/AI4AI-for-Anything/ResearchBoost-Agent/blob/main/docs/assets/wechat-group.png
+    about: Scan the QR code to join the WeChat group.

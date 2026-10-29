@@ -12,7 +12,8 @@
   <a href="https://ydove0324.github.io/hx_resume/blog/researchboost/"><img src="https://img.shields.io/static/v1?label=Blog&amp;message=Read&amp;color=7C3AED" alt="Blog"></a> &ensp;
   <a href="https://ai4ai-for-anything.github.io/"><img src="https://img.shields.io/static/v1?label=Project&amp;message=Page&amp;color=blue&amp;logo=github-pages" alt="Project Page"></a> &ensp;
   <a href="https://github.com/AI4AI-for-Anything/ResearchBoost-Agent"><img src="https://img.shields.io/static/v1?label=GitHub&amp;message=Code&amp;color=181717&amp;logo=github" alt="GitHub"></a> &ensp;
-  <a href="docs/assets/wechat-group.png"><img src="https://img.shields.io/static/v1?label=WeChat&amp;message=Group&amp;color=07C160&amp;logo=wechat&amp;logoColor=white" alt="WeChat Group"></a>
+  <a href="docs/assets/wechat-group.png"><img src="https://img.shields.io/static/v1?label=WeChat&amp;message=Group&amp;color=07C160&amp;logo=wechat&amp;logoColor=white" alt="WeChat Group"></a> &ensp;
+  <a href="https://discord.gg/5k7Rr9hut"><img src="https://img.shields.io/static/v1?label=Discord&amp;message=Join&amp;color=5865F2&amp;logo=discord&amp;logoColor=white" alt="Discord"></a>
 </p>
 
 ResearchBoost-Agent turns AI capabilities into faster AI experimentation, starting with the training code researchers run every day. It autonomously profiles bottlenecks, implements optimizations, and validates speedups against a frozen evaluation protocol, turning the same compute budget into more room to explore.
@@ -32,15 +33,16 @@ Have a project you want accelerated? Submit it to our Wishlist.</p>
 
 ## Results
 
-**12 projects across 5 research domains.** Explore the reports for experiment settings and validation results.
+**13 projects across 5 research domains.** Explore the reports for experiment settings and validation results.
 
 <details>
-<summary><strong>LLM</strong> · 2 projects — NanoChat, YOCO</summary>
+<summary><strong>LLM</strong> · 3 projects — NanoChat, YOCO, LLM2Vec</summary>
 
 | Project | Workload | Speedup |
 |---|---|---:|
-| [Faster-NanoChat](https://github.com/AI4AI-for-Anything/Faster-NanoChat) | D24 (~1.384B) · Tensorwise FP8 training | **1.0744×** |
+| [Faster-NanoChat](https://github.com/AI4AI-for-Anything/Faster-NanoChat) by [@Bool1020](https://github.com/Bool1020) | D24 (~1.384B) · Tensorwise FP8 training | **1.0744×** |
 | [Faster-YOCO](https://github.com/AI4AI-for-Anything/Faster-YOCO) | YOCO-3B pretraining · BF16, no FP8 | **2.12×** |
+| [Faster-LLM2Vec](https://github.com/AI4AI-for-Anything/Faster-LLM2Vec) by [@Bool1020](https://github.com/Bool1020) | Mistral-7B · BF16 LoRA; MNTP / SimCSE (independent stages) | **1.2900× / 1.6009×** |
 
 [Measurement setup & validation →](docs/results/llm.md)
 
@@ -97,32 +99,48 @@ Have a project you want accelerated? Submit it to our Wishlist.</p>
 </details>
 
 
-[Full results index →](docs/results/README.md) · [Interactive results ↗](https://ai4ai-for-anything.github.io/#research)
+[Full results index →](docs/results/README.md) · [Interactive results ↗](https://ai4ai-for-anything.github.io/#research) · [Add your case →](#contribute-a-case)
 
 ## Quick start
 
-Runs are driven by [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator) on the GPU host:
+Open Codex or Claude Code on a Linux GPU host, in your training repository or in an empty folder, and paste:
 
-```bash
-npm install -g @enderfga/claw-orchestrator   # 7.13.0 or later
-clawo serve                                   # keep it running
+```text
+Use ResearchBoost-Agent (https://github.com/AI4AI-for-Anything/ResearchBoost-Agent) to speed up my training.
+Clone it outside my repository and follow goal/templates/FORMULATOR_BRIEF.md from section 0.5.
 ```
 
-Give the agent access to a model endpoint:
+There is nothing to fill in. The agent looks around first (the repository you opened it in, the GPUs, the free disk), then asks with its question tool, each question offering what it found: which code and training command, which GPUs, where to work; then, once it has read the code, the workload, precision and target speedup, which are your decisions. Everything else it does itself: it installs and starts [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator), reuses the model access the host already has (its Codex or Claude Code login, or `OPENAI_API_KEY` / `ANTHROPIC_API_KEY`), builds and verifies the frozen judge, launches the optimizer on the same engine, supervises it, and reports the verified speedup. [bubblewrap](https://github.com/containers/bubblewrap) isolates the optimizer when the host has it; without it the run still works, guarded by the judge's hashes.
 
-```bash
-cp goal/codex.env.example goal/codex.env
-# edit goal/codex.env: set OPENAI_API_KEY and OPENAI_BASE_URL (optionally CODEX_MODEL)
+Codex shows its question form when started as `codex --enable default_mode_request_user_input`; without it the agent asks the same questions in one message.
+
+<details>
+<summary>Reproduce one of the tasks in this repository</summary>
+
+```text
+Use ResearchBoost-Agent (https://github.com/AI4AI-for-Anything/ResearchBoost-Agent) to reproduce its task tasks/dmd2.
+Clone it and follow docs/run-a-task.md; ask me which GPUs and work directory to use, offering what you find.
 ```
 
-Then point your agent at [docs/run-a-task.md](docs/run-a-task.md).
+</details>
+
+## Contribute a case
+
+Got a result with ResearchBoost-Agent? Add it to [Results](#results).
+
+1. Run the [Quick start](#quick-start) on your own training code.
+2. If you get a solid speedup or a non-trivial optimization trajectory, open a [case submission](https://github.com/AI4AI-for-Anything/ResearchBoost-Agent/issues/new?template=case-submission.yml).
+3. We review it. Once it is accepted, open a pull request that adds your result to Results, linking to your repository.
+4. When the pull request is merged, you appear among this repository's contributors.
+
+Review criteria and the pull request format: [CONTRIBUTING.md](CONTRIBUTING.md). To have us accelerate a project instead, use the [Wishlist](https://ydove0324.github.io/hx_resume/blog/researchboost/#wishlist).
 
 ## How a run works
 
 ![Goal mode: formulate and freeze the judge, then one agent iterates in a sandbox: profile, edit, time, full check, log](docs/figures/goal-mode-loop.svg)
 
 1. **Frame the task.** The owner fixes what may not change: the upstream workload and per-GPU load, the baseline precision, the training semantics. A formulating agent builds the judge for this task (`bench/` plus a frozen copy of [`numerics/`](numerics)), records the baseline, freezes δ, proves with known-bad candidates that every gate fires, and writes `GOAL.md`.
-2. **Run goal mode.** One Codex `/goal` session gets the workspace, the GPUs and the skill cards inside a bubblewrap sandbox. Every round it profiles the current best version, changes one hotspot behind a switch, measures with `bench.py time`, and logs the round in `WORK_LOG.md`. [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator) runs the session: it keeps the Codex thread across restarts and usage limits, and when Codex stops it runs the full check itself. A supervisor watches from outside and intervenes only on rules and facts, never on optimization direction. See [docs/goal-mode.md](docs/goal-mode.md).
+2. **Run goal mode.** One Codex or Claude Code `/goal` session gets the workspace, the GPUs and the skill cards inside a bubblewrap sandbox. Every round it profiles the current best version, changes one hotspot behind a switch, measures with `bench.py time`, and logs the round in `WORK_LOG.md`. [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator) runs the session: it keeps the thread across restarts and usage limits, and when the agent stops it runs the full check itself. A supervisor watches from outside and intervenes only on rules and facts, never on optimization direction. See [docs/goal-mode.md](docs/goal-mode.md).
 3. **Accept only what the judge accepts.** `bench.py check` is the only verdict. A full-check PASS is then confirmed with a real end-to-end training or evaluation run.
 
 ## The judge
@@ -138,15 +156,15 @@ The judge is frozen and hashed before optimization starts and is never relaxed t
 
 ## Starting a new task
 
-Read [AGENTS.md](AGENTS.md) and [docs/methodology.md](docs/methodology.md), give the formulating agent [`goal/templates/FORMULATOR_BRIEF.md`](goal/templates/FORMULATOR_BRIEF.md), and use [`tasks/dmd2`](tasks/dmd2) as the template: `GOAL.md`, a `bench/` with `check` / `time` / `profile`, a task adapter for [`numerics/`](numerics), and the prep scripts that rebuild the environment and freeze the baseline.
+The quick start does this for you. By hand: read [AGENTS.md](AGENTS.md) and [docs/methodology.md](docs/methodology.md), lay out the workspace with [`goal/init_task.sh`](goal/init_task.sh), give the formulating agent [`goal/templates/FORMULATOR_BRIEF.md`](goal/templates/FORMULATOR_BRIEF.md), and use [`tasks/dmd2`](tasks/dmd2) as the template: `GOAL.md`, a `bench/` with `check` / `time` / `profile`, a task adapter for [`numerics/`](numerics), and the prep scripts that rebuild the environment and freeze the baseline.
 
 ## Repository layout
 
 | Path | Contents |
 |---|---|
-| [`docs/results/`](docs/results) | Results from 12 projects, grouped by domain, with measurement scope and validation records |
+| [`docs/results/`](docs/results) | Results from 13 projects, grouped by domain, with measurement scope and validation records |
 | [`docs/`](docs) | [Methodology](docs/methodology.md), [the judge](docs/judge.md), [goal mode](docs/goal-mode.md), [running a task](docs/run-a-task.md), [lessons from four tasks](docs/lessons.md) |
-| [`goal/`](goal) | Running one Codex `/goal` session on claw-orchestrator: bubblewrap sandbox, Codex config template and model-access file, run / status / steer / resume scripts and the final check, the watchdog, the brief for the formulating and supervising agent |
+| [`goal/`](goal) | Running one Codex or Claude Code `/goal` session on claw-orchestrator: the task scaffold, the sandbox, model access for both engines, run / status / steer / resume scripts and the final check, the watchdog, the brief for the formulating and supervising agent |
 | [`numerics/`](numerics) | The equivalence component every task judge copies and freezes: recording, bitwise and tiered comparison, paired-seed trajectories, the task adapter base class, a self-test |
 | [`skills/`](skills) | Eight skill cards read before choosing what to try: `train-opt-*` (profiling, measurement, action ladder, numerics validation, fusion patterns, FSDP multi-forward) and `sglang-diffusion-*` (diffusion benchmarking and performance) |
 | [`tasks/`](tasks) | Per task: the `GOAL.md` the agent saw, the frozen judge code, archived judge records, supervision notes and the prep scripts |
@@ -156,3 +174,7 @@ Read [AGENTS.md](AGENTS.md) and [docs/methodology.md](docs/methodology.md), give
 We thank the [SGLang](https://github.com/sgl-project/sglang) project. Part of the kernel-optimization skills in this repository are ported from SGLang: [`skills/sglang-diffusion-benchmark-profile`](skills/sglang-diffusion-benchmark-profile) and [`skills/sglang-diffusion-performance`](skills/sglang-diffusion-performance) are adapted from the skills in [`python/sglang/multimodal_gen/.agents/skills`](https://github.com/sgl-project/sglang/tree/main/python/sglang/multimodal_gen/.agents/skills), released under the Apache-2.0 license.
 
 We also thank [Enderfga](https://github.com/Enderfga) for [claw-orchestrator](https://github.com/Enderfga/claw-orchestrator), which powers our goal-mode session orchestration.
+
+## 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=AI4AI-for-Anything/ResearchBoost-Agent&type=Date)](https://star-history.com/#AI4AI-for-Anything/ResearchBoost-Agent&Date)

@@ -7,3 +7,4 @@ records/
 *.pt
 *.pkl
 goal/codex.env
+goal/claude.env

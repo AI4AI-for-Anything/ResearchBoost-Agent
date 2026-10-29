@@ -12,7 +12,7 @@ F=$W/FINAL.json
 read -r TREE CONFIG < <(python3 - "$F" <<'PY'
 import json, sys
 d = json.load(open(sys.argv[1]))
-print(d.get('tree', ''), d.get('config', ''))
+print(d.get('tree') or '', d.get('config') or '')
 PY
 )
 [ -n "$TREE" ] || { echo "FINAL.json names no tree"; exit 2; }
