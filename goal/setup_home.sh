@@ -21,6 +21,9 @@
 #     in that file): copied into the task's home (mode 600).
 #     A long-lived token for a headless host: `claude setup-token`, then export CLAUDE_CODE_OAUTH_TOKEN.
 # A login copied into the task's home should be deleted with the home when the run is over.
+# A ChatGPT login rotates its refresh token: once the host's own Codex refreshes, a copy made earlier can no longer
+# refresh ("refresh token was already used") and the goal fails within seconds; if the copy refreshes first, the
+# host is logged out. Run this right before launching (and again before a relaunch), or use an API key.
 set -euo pipefail
 TASK=$1; shift
 HERE=$(cd "$(dirname "$0")" && pwd)
