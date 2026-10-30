@@ -16,6 +16,9 @@
 #   TOOLS         optional directory with node/codex/claude binaries, bound read-only and put first on PATH;
 #                 without it, the host's codex, claude and node are found on PATH and made visible
 #   PREP=1        formulation mode: ws/{bench,numerics,task,targets} stay writable
+#   RO_PATHS      host paths bound read-only (bubblewrap) before the task's own mounts: on a shared host, the
+#                 shared filesystems and the local disk other users' data lives on (the task's own $WORK/<task>,
+#                 $ASSETS and $LOCAL beneath them keep their modes), e.g. RO_PATHS="/fsx /opt/dlami/nvme"
 #   BWRAP         bubblewrap binary (default: bwrap on PATH)
 #
 # What the sandbox sees (bubblewrap):
@@ -104,7 +107,9 @@ fi
 
 # Mounts apply in order: the directories that cover others (home, /var/tmp, /tmp) first, then the task's own,
 # so a $WORK or $ASSETS under one of them is not hidden by it.
-args=(${userns[@]+"${userns[@]}"} --die-with-parent --dev-bind / / --dev /dev
+ro_first=()
+for d in ${RO_PATHS:-}; do [ -e "$d" ] && ro_first+=(--ro-bind "$d" "$d"); done
+args=(${userns[@]+"${userns[@]}"} --die-with-parent --dev-bind / / --dev /dev ${ro_first[@]+"${ro_first[@]}"}
       --tmpfs "$HOME" --tmpfs /var/tmp --bind "$L/tmp" /tmp
       --bind "$T" "$T" --ro-bind "$A" "$A")
 case ${SANDBOX_NET:-host} in

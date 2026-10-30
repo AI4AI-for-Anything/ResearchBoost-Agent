@@ -310,6 +310,13 @@ class Recorder:
                     entry['xrank_equal'] = {n: len({g.get(n) for g in gathered}) == 1 for n in shas}
                 torch.save(stored, self.out / f'{name}.r{rank}.s{i}.pt')
                 manifest['steps'].append(entry)
+                # The step's clones (gradients, updates, optimizer state, EMA) live on the device; drop them before
+                # the next step runs, which may need that memory (a large model's optimizer state alone can be
+                # tens of GB per GPU).
+                pending.clear()
+                tensors.clear()
+                mapped.clear()
+                stored.clear()
         finally:
             for handle in handles:
                 handle.remove()
