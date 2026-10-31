@@ -19,4 +19,6 @@ Contributed by [@micky-li-hd](https://github.com/micky-li-hd).
 
 Six of the recipe's 150 epochs (8,970 updates) per arm, run reference → candidate → reference with cold compiler caches. Whole-process time, including compilation, data loading, validation and checkpoint writing, went from 3,316.2 to 2,154.9 s (1.54×). Final validation accuracy is 0.447 for the candidate and 0.445 / 0.446 for the references; all 472 checkpoint tensors are finite in every run.
 
+This is a bounded exploratory comparison, not a frozen-judge four-gate PASS or a full-training convergence claim. The source tree contains the pinned upstream implementation with the training optimization applied in place, an unchanged reference arm, and reproduction scripts.
+
 [Code & project README ↗](https://github.com/micky-li-hd/Faster-ProteinMPNN) · [Detailed evidence ↗](https://github.com/micky-li-hd/Faster-ProteinMPNN/blob/main/six_epoch_evidence.json)
