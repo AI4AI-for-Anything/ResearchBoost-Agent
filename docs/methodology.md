@@ -26,7 +26,7 @@ A separate agent or a person formulates the task; the optimizing agent never see
 
 Each round has four steps; the wall clock starts when the GPU lock is taken:
 
-1. Profile the current best version and account layer by layer: stage → module → op → kernel. Sort hotspots into three kinds: existing fast paths that were missed, configuration or backend problems, and genuinely new opportunities ([`train-opt-tiered-profiling`](../skills/train-opt-tiered-profiling/SKILL.md)).
+1. Profile the current best version and account layer by layer: stage → module → op → kernel. Sort hotspots into three kinds: existing fast paths that were missed, configuration or backend problems, and genuinely new opportunities ([`train-opt-tiered-profiling`](../skills/train-opt-tiered-profiling/SKILL.md)). At the kernel tier, run the kernel utilization analysis ([`kernel-utilization-analysis`](../skills/kernel-utilization-analysis/SKILL.md)): grid size against the SM count, short launch-bound kernels, achieved against peak bandwidth, and repeated chains of small kernels. It names the inefficient kernels and kernel chains; a plateau is declared only after the large ones have had an attempt.
 2. Attack one hotspot, or one class of bottleneck. Every change sits behind its own switch, off by default ([`train-opt-action-ladder`](../skills/train-opt-action-ladder/SKILL.md)).
 3. Screen with `time`, adding `check --quick` when needed; run the full `check` only once the accumulated changes reach the target.
 4. Log the round in WORK_LOG: profile findings, the change, the `time` result, the `check` result. Failed and no-gain rounds are logged too.
