@@ -7,6 +7,7 @@ re-verify them on yours before treating them as facts. The verdict is always the
 | Card | Read when |
 |---|---|
 | `train-opt-tiered-profiling` | before choosing a hotspot: stage → module → op → kernel accounting, bottleneck classes, the three hotspot kinds |
+| `kernel-utilization-analysis` | at the kernel tier of every profile and before declaring a plateau: grid vs SM count, short (launch-bound) kernels, achieved vs peak bandwidth, repeated chains of small kernels; `scripts/kernel_util.py` reads Kineto and Nsight Systems traces |
 | `train-opt-measurement` | before timing anything: valid-run signatures, per-window acceptance, interleaving, fingerprints, GPU-hour accounting |
 | `train-opt-action-ladder` | deciding what to try: L0 switches → L1 libraries → L2 search → L3 rewrites → L4 kernels, symptom → first suspect |
 | `train-opt-numerics-validation` | changing precision or kernels: N0–N5 tiers, thresholds, fp64 arbitration, deterministic stand-ins |

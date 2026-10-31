@@ -68,7 +68,7 @@ nvidia-smi's utilization only says whether some kernel ran during the sampling p
 | Type | First-level signal | Confirming ablation |
 |---|---|---|
 | Data | `next(it)` takes more than 5–10% of the step | reuse one cached real batch; the step gets clearly faster |
-| Host / launch | the sum of GPU projection times is far below wall clock, and it is not waiting on data | a larger batch makes time grow sublinearly; CUDA graphs or reduce-overhead are clearly faster |
+| Host / launch | the sum of GPU projection times is far below wall clock, and it is not waiting on data; or, inside CUDA graphs, most kernel time is in `short` or `under-filled` classes of the kernel table (`kernel-utilization-analysis`) | a larger batch makes time grow sublinearly; CUDA graphs or reduce-overhead are clearly faster; fusing a repeated chain shortens its span |
 | Host syncs | long blocking periods in some CPU segment | sync debug mode warns; removing `.item()` makes it faster |
 | Bandwidth | top kernels are norms, elementwise ops, layout moves | clearly faster after compilation; measured bandwidth close to HBM peak |
 | Compute | very little idle; top kernels are GEMM or attention | compilation brings almost nothing; TFLOP/s close to measured peak |
@@ -83,7 +83,9 @@ Hard rule: **what looks like communication is checked for stragglers first.** Au
 - Use the locally measured peak. The power cap pushes clocks below nominal, and the denser a compute path, the lower it is pushed.
 - Also report J/sample. A configuration at 100% GPU utilization can use several times the energy of an efficient one.
 
-## Kernel level (Nsight Compute)
+## Kernel level
+
+Start the kernel tier with the whole-trace kernel table and chain list of [`kernel-utilization-analysis`](../kernel-utilization-analysis/SKILL.md) (`scripts/kernel_util.py`): it shows, per kernel class, how much of the GPU the grid uses, how much time goes to short launch-bound kernels, how far each class is from peak bandwidth (with a bytes model), and which chains of small kernels repeat. Then confirm the top 1–3 with Nsight Compute:
 
 - Look at only 1–3 kernels among the stage-level hotspots, filtered by kernel name and invocation index; do not replay the whole model.
 - With a large process memory, replaying each kernel is very slow. A reduced-depth copy can be used, but check that kernel signatures (names, shapes, launch configurations) match the full model, and state the coverage in the report.

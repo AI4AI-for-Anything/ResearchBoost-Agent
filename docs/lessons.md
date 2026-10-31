@@ -24,6 +24,9 @@
 - On a shared machine, a baseline window slowed by someone else's short job inflates the speedup (measured 2.44×, against 2.03× from clean windows). Look at the per-window times before trusting a speedup.
 - Timing noise sets the smallest gain you can resolve. Changes of 0.1–0.3% need interleaved A/B measurement, or timing of just the stage that changed.
 
+**The kernel tier**
+- An inference decode step (an MoE model with speculative decoding, 8 GPUs, inside CUDA graphs) was about 1,550 kernels of 3–16 us, three to four times its weight-read floor. In one profile, 39% of the kernel time was in grids covering less than half of the 148 SMs and 31% in kernels with a median under 5 us. Switch and backend sweeps gave about 15%, after which the agent declared a plateau with these classes untouched. The kernel table (`kernel-utilization-analysis`) shows this from a single trace. When most time sits in short or under-filled classes, the remaining lever is writing kernels: fusing the repeated chains, persistent kernels, a megakernel. A plateau is not established until those have been attempted.
+
 **Third-party libraries changing state behind your back**
 - Triton's file cache drew temporary file names from the global `random`, and xformers also consumed the global random stream; the RNG-fingerprint exact item rejected both. The fix is to replace only those modules' `random` with an independent `SystemRandom`.
 - torch 2.1.2+cu121's native BF16 `F.linear` raises SIGFPE on a single input row (dmesg shows a divide error in libcublasLt). The baseline crashes too, so the fix pads to at least 16 rows, and must not special-case by stage.

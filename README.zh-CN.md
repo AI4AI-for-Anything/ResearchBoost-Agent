@@ -167,7 +167,7 @@ Codex 用 `codex --enable default_mode_request_user_input` 启动时会弹出提
 | [`docs/`](docs) | 英文文档：[方法](docs/methodology.md)、[评测](docs/judge.md)、[goal 模式](docs/goal-mode.md)、[任务运行指南](docs/run-a-task.md)、[四个任务的经验](docs/lessons.md) |
 | [`goal/`](goal) | 在 claw-orchestrator 上运行 Codex 或 Claude Code `/goal` 会话的工具：建任务目录的脚本、沙箱、两种引擎的模型访问配置、启动 / 查看状态 / 发送提醒 / 恢复运行的脚本和最终评测、监控脚本，以及任务准备和监督 agent 的说明 |
 | [`numerics/`](numerics) | 各任务评测复制并固定版本的数值等价性检查组件：数据记录、逐位和分级比对、配对随机种子的训练轨迹比对、任务适配器基类及自测 |
-| [`skills/`](skills) | 选择优化方向前阅读的 8 份技能文档：`train-opt-*`（性能分析、计时、分阶段优化步骤、数值验证、算子融合方法、FSDP 多次前向计算）和 `sglang-diffusion-*`（扩散模型的性能测试与优化方法） |
+| [`skills/`](skills) | 选择优化方向前阅读的 9 份技能文档：`train-opt-*`（性能分析、计时、分阶段优化步骤、数值验证、算子融合方法、FSDP 多次前向计算）、`kernel-utilization-analysis`（SM 占用、受启动开销限制的内核、实际带宽与峰值之比、重复出现的小内核链，附 trace 分析脚本）和 `sglang-diffusion-*`（扩散模型的性能测试与优化方法） |
 | [`tasks/`](tasks) | 各任务的材料：agent 使用的 `GOAL.md`、固定版本的评测代码、评测结果存档、监督记录和准备脚本 |
 
 ## 致谢
