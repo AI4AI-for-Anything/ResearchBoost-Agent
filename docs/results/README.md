@@ -2,7 +2,7 @@
 
 [← ResearchBoost-Agent](../../README.md#results)
 
-**14 projects · 5 research domains**
+**15 projects · 6 research domains**
 
 Each report includes the workload, hardware, timing and validation results, with links to the project’s code and experiments.
 
@@ -13,6 +13,7 @@ Each report includes the workload, hardware, timing and validation results, with
 | Image Generation | RAE, DMD2, JiT | [Open report](image-generation.md) |
 | Video Generation | Self-Forcing, [MiniMax-H3](https://github.com/2018cx/Faster-MiniMax-H3) by [@2018cx](https://github.com/2018cx) | [Open report](video-generation.md) |
 | Embodied AI | RoboTwin, Motus, FastWAM | [Open report](embodied-ai.md) |
+| AI for Science | [ProteinMPNN](https://github.com/micky-li-hd/Faster-ProteinMPNN) by [@micky-li-hd](https://github.com/micky-li-hd) | [Open report](ai4s.md) |
 
 Speedups compare each workload with its own baseline. **est.** marks an extrapolated result.
 

@@ -33,7 +33,7 @@ Have a project you want accelerated? Submit it to our Wishlist.</p>
 
 ## Results
 
-**14 projects across 5 research domains.** Explore the reports for experiment settings and validation results.
+**15 projects across 6 research domains.** Explore the reports for experiment settings and validation results.
 
 <details>
 <summary><strong>LLM</strong> · 3 projects — NanoChat, YOCO, LLM2Vec</summary>
@@ -96,6 +96,17 @@ Have a project you want accelerated? Submit it to our Wishlist.</p>
 | [Faster-FastWAM](https://github.com/AI4AI-for-Anything/Faster-FastWAM) | FastWAM-LIBERO training recipe | **3.46×** |
 
 [Measurement setup & validation →](docs/results/embodied-ai.md)
+
+</details>
+
+<details>
+<summary><strong>AI for Science</strong> · 1 project — ProteinMPNN</summary>
+
+| Project | Workload | Speedup |
+|---|---|---:|
+| [Faster-ProteinMPNN](https://github.com/micky-li-hd/Faster-ProteinMPNN) by [@micky-li-hd](https://github.com/micky-li-hd) | ProteinMPNN v_48_020 training · full public dataset | **2.25×** |
+
+[Measurement setup & validation →](docs/results/ai4s.md)
 
 </details>
 
@@ -163,7 +174,7 @@ The quick start does this for you. By hand: read [AGENTS.md](AGENTS.md) and [doc
 
 | Path | Contents |
 |---|---|
-| [`docs/results/`](docs/results) | Results from 14 projects, grouped by domain, with measurement scope and validation records |
+| [`docs/results/`](docs/results) | Results from 15 projects, grouped by domain, with measurement scope and validation records |
 | [`docs/`](docs) | [Methodology](docs/methodology.md), [the judge](docs/judge.md), [goal mode](docs/goal-mode.md), [running a task](docs/run-a-task.md), [lessons from four tasks](docs/lessons.md) |
 | [`goal/`](goal) | Running one Codex or Claude Code `/goal` session on claw-orchestrator: the task scaffold, the sandbox, model access for both engines, run / status / steer / resume scripts and the final check, the watchdog, the brief for the formulating and supervising agent |
 | [`numerics/`](numerics) | The equivalence component every task judge copies and freezes: recording, bitwise and tiered comparison, paired-seed trajectories, the task adapter base class, a self-test |

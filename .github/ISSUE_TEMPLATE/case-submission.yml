@@ -28,6 +28,7 @@ body:
         - Image Generation
         - Video Generation
         - Embodied AI
+        - AI for Science
         - Other (name it below)
     validations:
       required: true
